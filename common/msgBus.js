@@ -6,7 +6,8 @@ class MsgBus {
 
     //Creates new message bus instance
     constructor() {
-
+        //Broadcast subscribers
+        this._broadcastSubs = [];
     }
 
     //Creates connection for Redis
@@ -14,14 +15,14 @@ class MsgBus {
 
     }
 
-    //Parameters: callBack - function to invoke on broadcast
+    //Parameters: callBack - function to be subscribed
     //Subscribes a function which will be invoked on broadcast
     //Returns Promise<void>
     async subscribeBroadcast(callBack) {
-
+        this._broadcastSubs.push(callBack);
     }
 
-    //Parameters: subject - the purpose of the query, callBack - function to invoke on query
+    //Parameters: subject - the purpose of the query, callBack - function to be subscribed
     //Subscribes a function which will be invoked on query
     //Returns Promise<void>
     async subscribeQuery(subject, callBack) {
@@ -32,7 +33,9 @@ class MsgBus {
     //Sends the payload to all broadcast subscribers
     //Returns Promise<void>
     async broadcast(payload) {
-
+        this._broadcastSubs.forEach(sub => {
+            sub(payload);
+        });
     }
 
     //Parameters: subject - the purpose of the query, payload - object to send
