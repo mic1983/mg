@@ -8,6 +8,8 @@ class MsgBus {
     constructor() {
         //Broadcast subscribers
         this._broadcastSubs = [];
+        //Query subscribers
+        this._querySubs = {};
     }
 
     //Creates connection for Redis
@@ -26,7 +28,11 @@ class MsgBus {
     //Subscribes a function which will be invoked on query
     //Returns Promise<void>
     async subscribeQuery(subject, callBack) {
+        if (!this._querySubs.hasOwnProperty(subject)) {
+            this._querySubs[subject] = [];
+        }
 
+        this._querySubs[subject].push(callBack);
     }
 
     //Parameters: payload - object to send
@@ -42,6 +48,16 @@ class MsgBus {
     //Sends the payload to all subscribers to the specific query
     //Returns Promise<Object[]> - array of all received answers
     async query(subject, payload) {
+        if (!this._querySubs.hasOwnProperty(subject)) {
+            throw Error("Not registered query subject!");
+        }
 
+        let answers = [];
+
+        this._querySubs[subject].forEach(sub => {
+            answers.push(sub(payload));
+        });
+
+        return answers;
     }
 }
