@@ -5,6 +5,9 @@ class MsgBus {
         const os = require("os");
         this._hostname = os.hostname();
 
+        const uuidv4 = require('uuid').v4;
+        this._generateGuid = uuidv4;
+
         //Broadcast subscribers
         this._localBroadcastSubs = [];
 
@@ -94,7 +97,7 @@ class MsgBus {
     }
 
     async createQueryPackage(subject, payload, resolve) {
-        let id = await MsgBus.generateGuid();
+        let id = this._generateGuid();
 
         this._pendingLocalQuerys.set(id, resolve);
 
@@ -163,13 +166,6 @@ class MsgBus {
     
             this.publisher.publish(node, JSON.stringify(resultPackage));
         });
-    }
-
-    static async generateGuid() {
-        const uuidv4 = require('uuid').v4;
-        let id = uuidv4();
-
-        return id;
     }
 }
 
