@@ -139,23 +139,35 @@ class MsgBus {
 
     async notifyLocalQuerySubscribers(queryPackage) {
         let query = queryPackage.query;
+        let payload = queryPackage.payload;
+        let node = queryPackage.node;
 
         //TODO check whether there is valid querySub
         if (!this._localQuerySubs.hasOwnProperty(query)) {
             //throw Error("Not registered query subject!");
+        } else {
+            //TODO callBacks may be time consuming
+            let callBacks = this._localQuerySubs[query];
+            callBacks.forEach(callBack => {
+                let result = callBack(payload);
+                queryPackage.result = result;
+
+                this.publisher.publish(node, JSON.stringify(queryPackage));
+            });
         }
 
-        let payload = queryPackage.payload;
-        let node = queryPackage.node;
+        //TODO check whether there is valid wildCard
+        if (!this._localQuerySubs.hasOwnProperty("*")) {
+            //throw Error("Not registered query subject!");
+        } else {
+            let callBacks = this._localQuerySubs["*"];
+            callBacks.forEach(callBack => {
+                let result = callBack(payload);
+                queryPackage.result = result;
 
-        //TODO callBacks may be time consuming
-        let callBacks = this._localQuerySubs[query];
-        callBacks.forEach(callBack => {
-            let result = callBack(payload);
-            queryPackage.result = result;
-    
-            this.publisher.publish(node, JSON.stringify(queryPackage));
-        });
+                this.publisher.publish(node, JSON.stringify(queryPackage));
+            });
+        }
     }
 }
 
