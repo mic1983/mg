@@ -1,3 +1,5 @@
+const QueryPackage = require("./msgUtils/QueryPackage");
+
 class MsgBus {
 
     //Creates new message bus instance
@@ -101,12 +103,7 @@ class MsgBus {
 
         this._pendingLocalQuerys.set(id, resolve);
 
-        let queryPackage = {
-            "query": subject,
-            "payload": payload,
-            "query-id": id,
-            "node": this._hostname
-        };
+        let queryPackage = new QueryPackage(subject, payload, id, this._hostname);
 
         return queryPackage;
     }
@@ -155,16 +152,9 @@ class MsgBus {
         let callBacks = this._localQuerySubs[query];
         callBacks.forEach(callBack => {
             let result = callBack(payload);
-
-            let resultPackage = {
-                "query": query,
-                "payload": payload,
-                "query-id": queryPackage["query-id"],
-                "node": node,
-                "result": result
-            };
+            queryPackage.result = result;
     
-            this.publisher.publish(node, JSON.stringify(resultPackage));
+            this.publisher.publish(node, JSON.stringify(queryPackage));
         });
     }
 }
