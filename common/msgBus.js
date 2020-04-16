@@ -1,7 +1,3 @@
-/*
-   With Redis Pub/Sub will be implementd
-   two main message channels - system and service.
-*/
 class MsgBus {
 
     //Creates new message bus instance
@@ -117,7 +113,7 @@ class MsgBus {
         let id = resultPackage["query-id"];
 
         let resolve = this._pendingLocalQuerys.get(id);
-        
+
         if (typeof resolve !== 'undefined') {
             resolve(result);
 
@@ -129,9 +125,9 @@ class MsgBus {
         let isQuery = payload.hasOwnProperty("query-id");
 
         if (isQuery) {
-            await this.notifyLocalQuerySubscribers(payload);
+            this.notifyLocalQuerySubscribers(payload);
         } else {
-            await this.notifyLocalBroadcastSubscribers(payload);
+            this.notifyLocalBroadcastSubscribers(payload);
         }
     }
 
@@ -143,27 +139,30 @@ class MsgBus {
 
     async notifyLocalQuerySubscribers(queryPackage) {
         let query = queryPackage.query;
-        let node = queryPackage.node;
-        let payload = queryPackage.payload;
 
         //TODO check whether there is valid querySub
         if (!this._localQuerySubs.hasOwnProperty(query)) {
             //throw Error("Not registered query subject!");
         }
 
-        let callBack = this._localQuerySubs[query][0];
-        let result = callBack(payload);
+        let payload = queryPackage.payload;
+        let node = queryPackage.node;
 
-        let resultPackage = {
-            "query": query,
-            "payload": payload,
-            "query-id": queryPackage["query-id"],
-            "node": node,
-            "result": result
-        };
+        //TODO callBacks may be time consuming
+        let callBacks = this._localQuerySubs[query];
+        callBacks.forEach(callBack => {
+            let result = callBack(payload);
 
-
-        await this.publisher.publish(node, JSON.stringify(resultPackage));
+            let resultPackage = {
+                "query": query,
+                "payload": payload,
+                "query-id": queryPackage["query-id"],
+                "node": node,
+                "result": result
+            };
+    
+            this.publisher.publish(node, JSON.stringify(resultPackage));
+        });
     }
 
     static async generateGuid() {
