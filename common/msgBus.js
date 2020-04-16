@@ -36,7 +36,7 @@ class MsgBus {
             this.subscriber = redis.createClient(config);
 
             this.subscriber.on("ready", () => {
-                //Listen on broadcast channel
+                //Listen on broadcast and hostname channel
                 this.subscriber.subscribe("broadcast");
                 this.subscriber.subscribe(this._hostname);
 
@@ -45,7 +45,7 @@ class MsgBus {
                     console.error(error);
                 });
 
-                //Listen for messaages on sub channels
+                //Listen for messaages
                 this.subscriber.on("message", (channel, message) => {
                     if (channel == "broadcast") {
                         this.notifyLocalSubscribers(JSON.parse(message));
@@ -117,10 +117,12 @@ class MsgBus {
         let id = resultPackage["query-id"];
 
         let resolve = this._pendingLocalQuerys.get(id);
+        
+        if (typeof resolve !== 'undefined') {
+            resolve(result);
 
-        resolve(result);
-
-        this._pendingLocalQuerys.delete(id);
+            this._pendingLocalQuerys.delete(id);
+        }
     }
 
     async notifyLocalSubscribers(payload) {
