@@ -21,7 +21,8 @@ class MsgBus {
     }
 
     //Creates connection for Redis
-    async init() {
+    //Resolves with true if the connection is established correctly
+    init() {
         return new Promise(async (resolve, reject) => {
             const redis = require('redis');
 
@@ -34,20 +35,20 @@ class MsgBus {
                 //db: connection.db,
             };
 
-            this.subscriber = redis.createClient(config);
+            this._subscriber = redis.createClient(config);
 
-            this.subscriber.on("ready", () => {
+            this._subscriber.on("ready", () => {
                 //Listen on broadcast and hostname channel
-                this.subscriber.subscribe("broadcast");
-                this.subscriber.subscribe(this._hostname);
+                this._subscriber.subscribe("broadcast");
+                this._subscriber.subscribe(this._hostname);
 
                 //Listen for error messages
-                this.subscriber.on("error", function (error) {
+                this._subscriber.on("error", function (error) {
                     console.error(error);
                 });
 
                 //Listen for messaages
-                this.subscriber.on("message", (channel, message) => {
+                this._subscriber.on("message", (channel, message) => {
                     if (channel == "broadcast") {
                         this.notifyLocalSubscribers(JSON.parse(message));
                     } else if (channel == this._hostname) {
@@ -55,8 +56,8 @@ class MsgBus {
                     }
                 });
 
-                this.publisher = redis.createClient(config);
-                this.publisher.on("ready", () => resolve());
+                this._publisher = redis.createClient(config);
+                this._publisher.on("ready", () => resolve(true));
             });
         })
     }
@@ -83,7 +84,7 @@ class MsgBus {
     //Sends the payload to all broadcast subscribers
     //Returns Promise<void>
     async broadcast(payload) {
-        this.publisher.publish("broadcast", JSON.stringify(payload));
+        this._publisher.publish("broadcast", JSON.stringify(payload));
     }
 
     //Parameters: subject - the purpose of the query, payload - object to send
@@ -92,7 +93,7 @@ class MsgBus {
     query(subject, payload) {
         let promise = new Promise((resolve, reject) => {
             this.createQueryPackage(subject, payload, resolve)
-                .then((queryPackage) => this.publisher.publish("broadcast", JSON.stringify(queryPackage)))
+                .then((queryPackage) => this._publisher.publish("broadcast", JSON.stringify(queryPackage)))
         });
 
         return promise;
@@ -142,6 +143,10 @@ class MsgBus {
         let payload = queryPackage.payload;
         let node = queryPackage.node;
 
+        let arg = new Object();
+        arg.payload = payload;
+        arg.subject = query;
+
         //TODO check whether there is valid querySub
         if (!this._localQuerySubs.hasOwnProperty(query)) {
             //throw Error("Not registered query subject!");
@@ -149,10 +154,10 @@ class MsgBus {
             //TODO callBacks may be time consuming
             let callBacks = this._localQuerySubs[query];
             callBacks.forEach(callBack => {
-                let result = callBack(payload);
+                let result = callBack(arg);
                 queryPackage.result = result;
 
-                this.publisher.publish(node, JSON.stringify(queryPackage));
+                this._publisher.publish(node, JSON.stringify(queryPackage));
             });
         }
 
@@ -162,10 +167,10 @@ class MsgBus {
         } else {
             let callBacks = this._localQuerySubs["*"];
             callBacks.forEach(callBack => {
-                let result = callBack(payload);
+                let result = callBack(arg);
                 queryPackage.result = result;
 
-                this.publisher.publish(node, JSON.stringify(queryPackage));
+                this._publisher.publish(node, JSON.stringify(queryPackage));
             });
         }
     }
