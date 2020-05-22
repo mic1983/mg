@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "node index.js"
+    "start": "node index.js",
+    "devStart": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,9 @@
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
-    "jest": "^26.0.1"
+    "jest": "^26.0.1",
+    "express.io": "^1.1.13",
+    "socket.io": "^2.3.0",
+    "nodemon": "^2.0.4"
   }
 }
