@@ -22,17 +22,21 @@ class MsgBus {
 
     //Creates connection for Redis
     //Resolves with true if the connection is established correctly
-    init() {
+    init(connectionSettings, log) {
+
+        this.logService = log;
+        let self = this;
+        //TODO check connectionSettings type
+
         return new Promise(async (resolve, reject) => {
             const redis = require('redis');
 
-            let connection = require("../redis-connection.json")
 
             let config = {
-                port: connection.port,
-                host: connection.host,
-                password: connection.password,
-                //db: connection.db,
+                port: connectionSettings.port,
+                host: connectionSettings.host,
+                password: connectionSettings.password,
+                //db: connectionSettings.db,
             };
 
             this._subscriber = redis.createClient(config);
@@ -57,7 +61,10 @@ class MsgBus {
                 });
 
                 this._publisher = redis.createClient(config);
-                this._publisher.on("ready", () => resolve(true));
+                this._publisher.on("ready", () =>  {
+                    this.logService.log('MessageBus initialised');
+                    resolve(self);
+                });
             });
         })
     }
