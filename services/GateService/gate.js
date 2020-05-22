@@ -17,9 +17,9 @@ class GateService {
 
                 //todo emit in msgBus
 
-                this.msgBus.query(payload.service, payload.query)
+                this.msgBus.query(payload.query, payload)
                 .then(res => {
-                    this.io.emit(message, res);
+                    this.io.emit('message', res);
                 })
                 
               });
