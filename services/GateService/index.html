@@ -1,0 +1,46 @@
+<!DOCTYPE html> 
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,
+        initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>MG</title>
+    </head>
+    <body>
+        <div id="message-container"></div>
+        <form id="send-container">
+            <select name="service-name" id="service-name">
+                <option value="">Select service</option>
+                <option value="henry">Henry</option>
+                <option value="ross">Ross</option>
+              </select>
+            <input type="text" id="query-name">
+            <button type="submit" id="send-button">Send</button>
+        </form>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            const messageForm = document.getElementById('send-container');
+            const serviceName = document.getElementById('service-name');
+            const queryName = document.getElementById('query-name');
+
+            var socket = io();
+            socket.on('message', function(msg){
+                console.log('received msg', msg);
+            });
+
+            messageForm.addEventListener('submit', e => {
+                e.preventDefault()
+                //TODO make validation
+                const message = {
+                    service: serviceName.value,
+                    query: queryName.value,
+                };
+                socket.emit('message', message)
+                console.log('emit', message);
+                queryName.value = ''
+            });
+        </script>
+    </body>
+</html>

@@ -19,14 +19,14 @@
   },
   "homepage": "https://github.com/mic1983/mg#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "redis": "^3.0.2",
+    "socket.io": "^2.3.0",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "jest": "^26.0.1",
-    "express.io": "^1.1.13",
-    "socket.io": "^2.3.0",
     "nodemon": "^2.0.4"
   }
 }
