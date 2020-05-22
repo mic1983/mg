@@ -1,5 +1,7 @@
 const MsgBus = require("./msgBus");
 const QueryPackage = require("./msgUtils/QueryPackage")
+const LogService = require("./log");
+const connectionSettings = require("../redis-settings.json")
 
 //to get intellisense
 var msgBus = new MsgBus();
@@ -13,7 +15,8 @@ it("should be defined", () => {
 });
 
 it("should initialize", async () => {
-    await expect(msgBus.init()).resolves.toEqual(true);
+    const log = await (new LogService()).init();
+    await expect(msgBus.init(connectionSettings, log)).resolves.toBe(msgBus);
 });
 
 it("should subscribe local broadcast", async () => {
@@ -285,7 +288,8 @@ it("should publish query", async () => {
 });
 
 it("should send broadcast", async () => {
-    await msgBus.init();
+    const log = await (new LogService()).init();
+    await msgBus.init(connectionSettings, log);
 
     let payload = {};
     let mockFn = jest.fn(() => {
@@ -301,7 +305,8 @@ it("should send broadcast", async () => {
 });
 
 it("should send query", async () => {
-    await msgBus.init();
+    const log = await (new LogService()).init();
+    await msgBus.init(connectionSettings, log);
 
     let payload = {};
     let subject = "test";
