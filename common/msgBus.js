@@ -160,8 +160,8 @@ class MsgBus {
         } else {
             //TODO callBacks may be time consuming
             let callBacks = this._localQuerySubs[query];
-            callBacks.forEach(callBack => {
-                let result = callBack(arg);
+            callBacks.forEach(async (callBack) => {
+                let result = await callBack(arg);
                 queryPackage.result = result;
 
                 this._publisher.publish(node, JSON.stringify(queryPackage));
